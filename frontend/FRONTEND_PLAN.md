@@ -19,7 +19,42 @@ Single-page application with file upload functionality, cloud storage integratio
 
 ## Core Features Implementation
 
-### 1. File Upload Page (Main/Only Page)
+### 1. Authentication System
+
+**File**: `src/pages/LoginPage.tsx`
+
+**Components Required**:
+
+- `LoginForm` - Email/password login form with validation
+- `AuthLayout` - Shared layout for auth pages
+- Authentication state management with React Query
+
+**Features**:
+
+- Email/password login with form validation
+- Remember me functionality
+- Error handling for authentication failures
+- Automatic redirect after successful login
+- Integration with existing auth service
+
+**Types Required**:
+
+- Already implemented in `src/types/user.ts`
+- LoginRequest, AuthResponse interfaces exist
+
+**API Services**:
+
+- Already implemented in `src/services/auth.ts`
+- Login, logout, token refresh functionality
+
+**Testing Strategy**:
+
+- Login form validation tests
+- Authentication flow tests
+- Error handling tests
+- Protected route redirect tests
+
+### 2. File Upload Page (Protected Page)
 
 **File**: `src/pages/FileUpload.tsx`
 
@@ -95,7 +130,8 @@ src/
 
 ## State Management
 
-- Local React state with custom hook `useFileUpload.ts`
+- Local React state with custom hooks (`useFileUpload.ts`, `useAuth.ts`)
+- React Query for authentication state management
 - No external state management needed for this minimal app
 
 ## Form Validation Rules
@@ -125,21 +161,28 @@ interface FileUploadResponse {
 src/
 ├── __tests__/
 │   ├── components/
+│   │   ├── auth/
+│   │   │   ├── LoginForm.test.tsx
+│   │   │   └── AuthLayout.test.tsx
 │   │   └── upload/
 │   │       ├── FileDropzone.test.tsx
 │   │       ├── FilePreview.test.tsx
 │   │       ├── UploadProgress.test.tsx
 │   │       └── UploadResult.test.tsx
 │   ├── pages/
+│   │   ├── LoginPage.test.tsx
 │   │   └── FileUpload.test.tsx
 │   ├── services/
+│   │   ├── auth.test.ts
 │   │   └── fileService.test.ts
 │   ├── utils/
 │   │   ├── fileValidation.test.ts
 │   │   └── fileHelpers.test.ts
 │   └── hooks/
+│       ├── useAuth.test.ts
 │       └── useFileUpload.test.ts
 ├── __mocks__/
+│   ├── authMocks.ts
 │   ├── fileMocks.ts
 │   └── handlers.ts (MSW handlers)
 └── test-utils.tsx
@@ -152,6 +195,29 @@ src/
 - `vitest.config.ts` - Already configured
 
 ### Unit/Component Tests (Vitest + RTL)
+
+**LoginForm Component Tests**:
+
+- Renders form fields correctly
+- Validates email format
+- Validates password requirements
+- Handles form submission
+- Shows appropriate error messages
+- Disables submit during loading state
+- Remember me functionality
+
+**AuthLayout Component Tests**:
+
+- Renders layout structure correctly
+- Handles responsive design
+- Displays proper styling
+
+**LoginPage Tests**:
+
+- Complete authentication flow integration
+- Redirects after successful login
+- Error handling for failed login
+- Loading states management
 
 **FileDropzone Component Tests**:
 
@@ -191,6 +257,15 @@ src/
 
 ### Service/API Tests
 
+**authService Tests**:
+
+- Mock API calls using MSW
+- Test login with valid credentials
+- Test login with invalid credentials
+- Test logout functionality
+- Test token refresh handling
+- Test error handling (network, server errors)
+
 **fileService Tests**:
 
 - Mock API calls using MSW
@@ -200,6 +275,15 @@ src/
 - Test signed URL retrieval
 
 ### Hook Tests
+
+**useAuth Hook Tests**:
+
+- Authentication state management
+- Login flow handling
+- Logout functionality
+- Token refresh behavior
+- Error state management
+- Loading states
 
 **useFileUpload Hook Tests**:
 

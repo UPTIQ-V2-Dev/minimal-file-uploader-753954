@@ -21,6 +21,22 @@ async function main() {
     });
 
     console.log('✅ Created admin user:', admin.email);
+
+    // Create sample file for admin user (for testing purposes)
+    const sampleFile = await prisma.file.upsert({
+        where: { id: 1 },
+        update: {},
+        create: {
+            filename: 'sample-document.pdf',
+            originalName: 'Sample Document.pdf',
+            contentType: 'application/pdf',
+            size: 1024000,
+            signedUrl: 'https://example.com/signed-url-sample',
+            userId: admin.id
+        }
+    });
+
+    console.log('✅ Created sample file:', sampleFile.originalName);
 }
 
 main()

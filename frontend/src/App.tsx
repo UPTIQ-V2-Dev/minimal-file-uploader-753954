@@ -1,5 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { FileUploadPage } from './pages/FileUploadPage';
+import { LoginPage } from './pages/LoginPage';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -16,7 +19,31 @@ const queryClient = new QueryClient({
 export const App = () => {
     return (
         <QueryClientProvider client={queryClient}>
-            <FileUploadPage />
+            <BrowserRouter>
+                <Routes>
+                    <Route
+                        path='/login'
+                        element={<LoginPage />}
+                    />
+                    <Route
+                        path='/'
+                        element={
+                            <ProtectedRoute>
+                                <FileUploadPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path='*'
+                        element={
+                            <Navigate
+                                to='/'
+                                replace
+                            />
+                        }
+                    />
+                </Routes>
+            </BrowserRouter>
         </QueryClientProvider>
     );
 };

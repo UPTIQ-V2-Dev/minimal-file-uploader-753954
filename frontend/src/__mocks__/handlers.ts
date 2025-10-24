@@ -1,8 +1,46 @@
 import { http, HttpResponse } from 'msw';
 import { FileUploadResponse } from '../types/file';
+import { mockAuthResponse, mockValidLoginRequest } from './authMocks';
 
 export const handlers = [
-    http.post('/api/files/upload', async ({ request }) => {
+    // Auth endpoints
+    http.post('/api/v1/auth/login', async ({ request }) => {
+        const body = (await request.json()) as { email: string; password: string };
+        const { email, password } = body;
+
+        // Simulate invalid credentials
+        if (email !== mockValidLoginRequest.email || password !== mockValidLoginRequest.password) {
+            return HttpResponse.json({ message: 'Invalid email or password' }, { status: 401 });
+        }
+
+        // Simulate successful login
+        return HttpResponse.json(mockAuthResponse);
+    }),
+
+    http.post('/api/v1/auth/register', async () => {
+        // Simulate registration success
+        return HttpResponse.json(mockAuthResponse);
+    }),
+
+    http.post('/api/v1/auth/refresh-tokens', async ({ request }) => {
+        const body = (await request.json()) as { refreshToken: string };
+        const { refreshToken } = body;
+
+        if (!refreshToken) {
+            return HttpResponse.json({ message: 'Refresh token required' }, { status: 400 });
+        }
+
+        // Simulate token refresh success
+        return HttpResponse.json(mockAuthResponse);
+    }),
+
+    http.post('/api/v1/auth/logout', async ({ request }) => {
+        // Simulate logout success
+        return HttpResponse.json({ message: 'Logged out successfully' });
+    }),
+
+    // File endpoints
+    http.post('/api/v1/files/upload', async ({ request }) => {
         const formData = await request.formData();
         const file = formData.get('file') as File;
 
@@ -23,7 +61,7 @@ export const handlers = [
         return HttpResponse.json(response);
     }),
 
-    http.get('/api/files/:id', ({ params }) => {
+    http.get('/api/v1/files/:id', ({ params }) => {
         const { id } = params;
 
         const response: FileUploadResponse = {
@@ -38,7 +76,7 @@ export const handlers = [
         return HttpResponse.json(response);
     }),
 
-    http.put('/api/files/:id', async ({ params, request }) => {
+    http.put('/api/v1/files/:id', async ({ params, request }) => {
         const { id } = params;
         const formData = await request.formData();
         const file = formData.get('file') as File;

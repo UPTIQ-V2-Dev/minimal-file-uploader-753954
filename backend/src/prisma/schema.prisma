@@ -24,6 +24,7 @@ model User {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   Token           Token[]
+  File            File[]
 }
 
 model Token {
@@ -40,6 +41,19 @@ model Token {
 enum Role {
   USER
   ADMIN
+}
+
+model File {
+  id          Int      @id @default(autoincrement())
+  filename    String
+  originalName String
+  contentType String
+  size        Int
+  signedUrl   String?
+  uploadedAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 enum TokenType {
