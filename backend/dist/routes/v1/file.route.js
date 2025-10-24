@@ -1,8 +1,10 @@
 import { fileController } from "../../controllers/index.js";
 import auth from "../../middlewares/auth.js";
 import validate from "../../middlewares/validate.js";
+import ApiError from "../../utils/ApiError.js";
 import { fileValidation } from "../../validations/index.js";
 import express from 'express';
+import httpStatus from 'http-status';
 import multer from 'multer';
 const router = express.Router();
 // Configure multer for file uploads
@@ -28,18 +30,36 @@ const upload = multer({
             cb(null, true);
         }
         else {
-            cb(new Error('Unsupported file type'));
+            const error = new Error('Unsupported file type');
+            error.code = 'UNSUPPORTED_FILE_TYPE';
+            cb(error);
         }
     }
 });
+// Multer error handling middleware
+const handleMulterError = (err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return next(new ApiError(httpStatus.REQUEST_ENTITY_TOO_LARGE, 'File size exceeds 10MB limit'));
+        }
+        if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+            return next(new ApiError(httpStatus.BAD_REQUEST, 'Unexpected field name'));
+        }
+        return next(new ApiError(httpStatus.BAD_REQUEST, err.message));
+    }
+    if (err.code === 'UNSUPPORTED_FILE_TYPE') {
+        return next(new ApiError(httpStatus.UNSUPPORTED_MEDIA_TYPE, 'Unsupported file type'));
+    }
+    next(err);
+};
 // File upload endpoint
-router.post('/upload', auth('manageFiles'), upload.single('file'), validate(fileValidation.uploadFile), fileController.uploadFile);
+router.post('/upload', auth('manageFiles'), upload.single('file'), handleMulterError, validate(fileValidation.uploadFile), fileController.uploadFile);
 // Get user files
 router.get('/', auth('getFiles'), validate(fileValidation.getFiles), fileController.getFiles);
 // Get single file by ID
 router.get('/:id', auth('getFiles'), validate(fileValidation.getFile), fileController.getFile);
 // Update/replace file
-router.put('/:id', auth('manageFiles'), upload.single('file'), validate(fileValidation.updateFile), fileController.updateFile);
+router.put('/:id', auth('manageFiles'), upload.single('file'), handleMulterError, validate(fileValidation.updateFile), fileController.updateFile);
 // Delete file
 router.delete('/:id', auth('manageFiles'), validate(fileValidation.deleteFile), fileController.deleteFile);
 export default router;

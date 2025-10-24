@@ -76,6 +76,9 @@ importers:
             multer:
                 specifier: ^2.0.2
                 version: 2.0.2
+            node-fetch:
+                specifier: ^3.3.2
+                version: 3.3.2
             nodemailer:
                 specifier: ^7.0.6
                 version: 7.0.6
@@ -3673,6 +3676,14 @@ packages:
             }
         engines: { node: '>= 8' }
 
+    data-uri-to-buffer@4.0.1:
+        resolution:
+            {
+                integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==,
+                tarball: https://registry.npmjs.org/data-uri-to-buffer/-/data-uri-to-buffer-4.0.1.tgz
+            }
+        engines: { node: '>= 12' }
+
     data-view-buffer@1.0.2:
         resolution:
             {
@@ -4366,6 +4377,14 @@ packages:
                 integrity: sha512-OP2IUU6HeYKJi3i0z4A19kHMQoLVs4Hc+DPqqxI2h/DPZHTm/vjsfC6P0b4jCMy14XizLBqvndQ+UilD7707Jw==
             }
 
+    fetch-blob@3.2.0:
+        resolution:
+            {
+                integrity: sha512-7yAQpD2UMJzLi1Dqv7qFYnPbaPx7ZfFK6PiIxQ4PfkGPyNyl2Ugx+a/umUonmKqjhM4DnfbMvdX6otXq83soQQ==,
+                tarball: https://registry.npmjs.org/fetch-blob/-/fetch-blob-3.2.0.tgz
+            }
+        engines: { node: ^12.20 || >= 14.13 }
+
     fflate@0.8.2:
         resolution:
             {
@@ -4440,6 +4459,14 @@ packages:
                 tarball: https://registry.npmjs.org/form-data/-/form-data-4.0.4.tgz
             }
         engines: { node: '>= 6' }
+
+    formdata-polyfill@4.0.10:
+        resolution:
+            {
+                integrity: sha512-buewHzMvYL29jdeQTVILecSaZKnt/RJWjoZCF5OW60Z67/GmSLBkOFM7qh1PI3zFNtJbaZL5eQu1vLfazOwj4g==,
+                tarball: https://registry.npmjs.org/formdata-polyfill/-/formdata-polyfill-4.0.10.tgz
+            }
+        engines: { node: '>=12.20.0' }
 
     formidable@3.5.4:
         resolution:
@@ -5567,6 +5594,15 @@ packages:
             }
         engines: { node: ^18 || ^20 || >= 21 }
 
+    node-domexception@1.0.0:
+        resolution:
+            {
+                integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==,
+                tarball: https://registry.npmjs.org/node-domexception/-/node-domexception-1.0.0.tgz
+            }
+        engines: { node: '>=10.5.0' }
+        deprecated: Use your platform's native DOMException instead
+
     node-fetch-native@1.6.7:
         resolution:
             {
@@ -5576,7 +5612,8 @@ packages:
     node-fetch@2.7.0:
         resolution:
             {
-                integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==
+                integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==,
+                tarball: https://registry.npmjs.org/node-fetch/-/node-fetch-2.7.0.tgz
             }
         engines: { node: 4.x || >=6.0.0 }
         peerDependencies:
@@ -5584,6 +5621,14 @@ packages:
         peerDependenciesMeta:
             encoding:
                 optional: true
+
+    node-fetch@3.3.2:
+        resolution:
+            {
+                integrity: sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==,
+                tarball: https://registry.npmjs.org/node-fetch/-/node-fetch-3.3.2.tgz
+            }
+        engines: { node: ^12.20.0 || ^14.13.1 || >=16.0.0 }
 
     node-forge@1.3.1:
         resolution:
@@ -6915,6 +6960,14 @@ packages:
                 optional: true
             jsdom:
                 optional: true
+
+    web-streams-polyfill@3.3.3:
+        resolution:
+            {
+                integrity: sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==,
+                tarball: https://registry.npmjs.org/web-streams-polyfill/-/web-streams-polyfill-3.3.3.tgz
+            }
+        engines: { node: '>= 8' }
 
     webidl-conversions@3.0.1:
         resolution:
@@ -9902,6 +9955,8 @@ snapshots:
             shebang-command: 2.0.0
             which: 2.0.2
 
+    data-uri-to-buffer@4.0.1: {}
+
     data-view-buffer@1.0.2:
         dependencies:
             call-bound: 1.0.4
@@ -10430,6 +10485,11 @@ snapshots:
 
     fecha@4.2.3: {}
 
+    fetch-blob@3.2.0:
+        dependencies:
+            node-domexception: 1.0.0
+            web-streams-polyfill: 3.3.3
+
     fflate@0.8.2: {}
 
     file-entry-cache@8.0.0:
@@ -10481,6 +10541,10 @@ snapshots:
             es-set-tostringtag: 2.1.0
             hasown: 2.0.2
             mime-types: 2.1.35
+
+    formdata-polyfill@4.0.10:
+        dependencies:
+            fetch-blob: 3.2.0
 
     formidable@3.5.4:
         dependencies:
@@ -11129,11 +11193,19 @@ snapshots:
 
     node-addon-api@8.5.0: {}
 
+    node-domexception@1.0.0: {}
+
     node-fetch-native@1.6.7: {}
 
     node-fetch@2.7.0:
         dependencies:
             whatwg-url: 5.0.0
+
+    node-fetch@3.3.2:
+        dependencies:
+            data-uri-to-buffer: 4.0.1
+            fetch-blob: 3.2.0
+            formdata-polyfill: 4.0.10
 
     node-forge@1.3.1: {}
 
@@ -11982,6 +12054,8 @@ snapshots:
             - sugarss
             - supports-color
             - terser
+
+    web-streams-polyfill@3.3.3: {}
 
     webidl-conversions@3.0.1: {}
 

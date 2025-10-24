@@ -111,8 +111,8 @@ const getFileById = async (id, userId) => {
  * @returns {Promise<File[]>}
  */
 const queryUserFiles = async (userId, options) => {
-    const page = options.page ?? 1;
-    const limit = options.limit ?? 10;
+    const page = Number(options.page) || 1;
+    const limit = Number(options.limit) || 10;
     const sortBy = options.sortBy || 'uploadedAt';
     const sortType = options.sortType ?? 'desc';
     const files = await prisma.file.findMany({

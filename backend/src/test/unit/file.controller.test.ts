@@ -125,10 +125,8 @@ describe('File Controller', () => {
             const controller = fileController.uploadFile as any;
             await controller(mockReq, mockRes, mockNext);
 
-            expect(mockNext).toHaveBeenCalledWith(
-                expect.any(ApiError)
-            );
-            
+            expect(mockNext).toHaveBeenCalledWith(expect.any(ApiError));
+
             const calledError = mockNext.mock.calls[0][0];
             expect(calledError.statusCode).toBe(httpStatus.BAD_REQUEST);
             expect(calledError.message).toBe('No file provided');
@@ -173,10 +171,8 @@ describe('File Controller', () => {
             const controller = fileController.getFile as any;
             await controller(mockReq, mockRes, mockNext);
 
-            expect(mockNext).toHaveBeenCalledWith(
-                expect.any(ApiError)
-            );
-            
+            expect(mockNext).toHaveBeenCalledWith(expect.any(ApiError));
+
             const calledError = mockNext.mock.calls[0][0];
             expect(calledError.statusCode).toBe(httpStatus.NOT_FOUND);
             expect(calledError.message).toBe('File not found');
@@ -295,10 +291,8 @@ describe('File Controller', () => {
             const controller = fileController.updateFile as any;
             await controller(mockReq, mockRes, mockNext);
 
-            expect(mockNext).toHaveBeenCalledWith(
-                expect.any(ApiError)
-            );
-            
+            expect(mockNext).toHaveBeenCalledWith(expect.any(ApiError));
+
             const calledError = mockNext.mock.calls[0][0];
             expect(calledError.statusCode).toBe(httpStatus.BAD_REQUEST);
             expect(calledError.message).toBe('No file provided');

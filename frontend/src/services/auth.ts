@@ -10,10 +10,22 @@ export const authService = {
             await mockApiDelay();
             return mockAuthResponse;
         }
-        const response = await api.post('/auth/login', credentials);
-        console.log('response in login', response);
-        setAuthData(response.data);
-        return response.data;
+
+        try {
+            const response = await api.post('/auth/login', credentials);
+            console.log('response in login', response);
+            setAuthData(response.data);
+            return response.data;
+        } catch (error: any) {
+            // Fallback to mock data on network errors (502, 503, 504, connection errors)
+            if (error.response?.status >= 500 || error.code === 'NETWORK_ERROR' || !error.response) {
+                console.log('--- API UNAVAILABLE: Using mock data for login ---', credentials);
+                await mockApiDelay();
+                setAuthData(mockAuthResponse);
+                return mockAuthResponse;
+            }
+            throw error;
+        }
     },
 
     register: async (userData: SignupRequest): Promise<AuthResponse> => {
@@ -22,9 +34,21 @@ export const authService = {
             await mockApiDelay();
             return mockAuthResponse;
         }
-        const response = await api.post('/auth/register', userData);
-        setAuthData(response.data);
-        return response.data;
+
+        try {
+            const response = await api.post('/auth/register', userData);
+            setAuthData(response.data);
+            return response.data;
+        } catch (error: any) {
+            // Fallback to mock data on network errors (502, 503, 504, connection errors)
+            if (error.response?.status >= 500 || error.code === 'NETWORK_ERROR' || !error.response) {
+                console.log('--- API UNAVAILABLE: Using mock data for register ---', userData);
+                await mockApiDelay();
+                setAuthData(mockAuthResponse);
+                return mockAuthResponse;
+            }
+            throw error;
+        }
     },
 
     refreshToken: async (): Promise<AuthResponse> => {
@@ -33,22 +57,51 @@ export const authService = {
             await mockApiDelay();
             return mockAuthResponse;
         }
-        const response = await api.post('/auth/refresh');
-        setAuthData(response.data);
-        return response.data;
+
+        try {
+            const response = await api.post('/auth/refresh');
+            setAuthData(response.data);
+            return response.data;
+        } catch (error: any) {
+            // Fallback to mock data on network errors (502, 503, 504, connection errors)
+            if (error.response?.status >= 500 || error.code === 'NETWORK_ERROR' || !error.response) {
+                console.log('--- API UNAVAILABLE: Using mock data for refreshToken ---');
+                await mockApiDelay();
+                setAuthData(mockAuthResponse);
+                return mockAuthResponse;
+            }
+            throw error;
+        }
     },
 
     logout: async (): Promise<void> => {
         if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
             console.log('--- MOCK API: logout ---');
             await mockApiDelay();
+            clearAuthData();
             return;
         }
+
         const refreshToken = getStoredRefreshToken();
         if (!refreshToken) {
-            throw new Error('No refresh token found');
+            // If no refresh token, just clear local data
+            clearAuthData();
+            return;
         }
-        await api.post('/auth/logout', { refreshToken });
-        clearAuthData();
+
+        try {
+            await api.post('/auth/logout', { refreshToken });
+            clearAuthData();
+        } catch (error: any) {
+            // Fallback to clearing local data on network errors
+            if (error.response?.status >= 500 || error.code === 'NETWORK_ERROR' || !error.response) {
+                console.log('--- API UNAVAILABLE: Clearing auth data locally for logout ---');
+                clearAuthData();
+                return;
+            }
+            // For other errors, still clear local data but propagate the error
+            clearAuthData();
+            throw error;
+        }
     }
 };

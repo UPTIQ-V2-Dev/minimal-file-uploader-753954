@@ -1,5 +1,4 @@
 import prisma from '../../client.ts';
-import auth from '../../middlewares/auth.ts';
 import fileRoute from '../../routes/v1/file.route.ts';
 import { getInstance } from '../../storage/main.ts';
 import express from 'express';
@@ -10,38 +9,44 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 // Mock dependencies
 vi.mock('../../client.ts');
 vi.mock('../../storage/main.ts');
+
+// Create a mockAuth function that can be controlled per test
+const mockAuth = vi.fn(() => (req: any, res: any, next: any) => {
+    req.user = {
+        id: 1,
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'USER'
+    };
+    next();
+});
+
 vi.mock('../../middlewares/auth.ts', () => ({
-    default: vi.fn(() => (req: any, res: any, next: any) => {
-        req.user = {
-            id: 1,
-            email: 'test@example.com',
-            name: 'Test User',
-            role: 'USER'
-        };
-        next();
-    })
+    default: mockAuth
 }));
+
 vi.mock('uuid', () => ({
     v4: vi.fn(() => 'mocked-uuid')
 }));
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use('/files', fileRoute);
 
 // Add error handling middleware to simulate production behavior
-app.use((err: any, req: any, res: any, next: any) => {
+app.use((err: any, req: any, res: any) => {
     const statusCode = err.statusCode || err.status || 500;
     let message = err.message;
-    
+
     // Handle multer errors specifically
     if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(413).json({ message: 'File too large' });
     }
-    if (err.message === 'Unsupported file type') {
+    if (err.code === 'UNSUPPORTED_FILE_TYPE' || err.message === 'Unsupported file type') {
         return res.status(415).json({ message: 'Unsupported file type' });
     }
-    
+
     res.status(statusCode).json({ message });
 });
 
@@ -76,9 +81,9 @@ describe('File API Integration Tests', () => {
         (getInstance as any).mockReturnValue(mockStorage);
         (prisma as any).file = mockPrisma.file;
         process.env.STORAGE_BUCKET_NAME = 'test-bucket';
-        
+
         // Reset auth mock to default authenticated user behavior
-        (auth as any).mockImplementation((...permissions: string[]) => (req: any, res: any, next: any) => {
+        mockAuth.mockImplementation(() => (req: any, res: any, next: any) => {
             req.user = {
                 id: 1,
                 email: 'test@example.com',
@@ -143,17 +148,15 @@ describe('File API Integration Tests', () => {
 
         it('should return 401 when not authenticated', async () => {
             // Override auth mock to fail authentication for this test
-            (auth as any).mockImplementation(() => (req: any, res: any, next: any) => {
-                const error = new Error('Please authenticate');
-                (error as any).statusCode = 401;
-                next(error);
+            mockAuth.mockImplementation(() => (req: any, res: any) => {
+                return res.status(401).json({ message: 'Please authenticate' });
             });
-            
+
             const response = await request(app)
                 .post('/files/upload')
                 .attach('file', Buffer.from('test content'), 'test.pdf')
                 .expect(httpStatus.UNAUTHORIZED);
-                
+
             expect(response.body).toMatchObject({
                 message: 'Please authenticate'
             });
@@ -163,7 +166,11 @@ describe('File API Integration Tests', () => {
             const response = await request(app)
                 .post('/files/upload')
                 .set('Authorization', `Bearer ${authToken}`)
-                .attach('file', Buffer.from('test content'), 'test.exe')
+                .field('test', 'data') // Add form data to trigger multer
+                .attach('file', Buffer.from('test content'), {
+                    filename: 'test.exe',
+                    contentType: 'application/x-executable'
+                })
                 .expect(httpStatus.UNSUPPORTED_MEDIA_TYPE);
 
             expect(response.body).toMatchObject({
@@ -227,16 +234,12 @@ describe('File API Integration Tests', () => {
 
         it('should return 401 when not authenticated', async () => {
             // Override auth mock to fail authentication for this test
-            (auth as any).mockImplementation(() => (req: any, res: any, next: any) => {
-                const error = new Error('Please authenticate');
-                (error as any).statusCode = 401;
-                next(error);
+            mockAuth.mockImplementation(() => (req: any, res: any) => {
+                return res.status(401).json({ message: 'Please authenticate' });
             });
-            
-            const response = await request(app)
-                .get('/files/1')
-                .expect(httpStatus.UNAUTHORIZED);
-                
+
+            const response = await request(app).get('/files/1').expect(httpStatus.UNAUTHORIZED);
+
             expect(response.body).toMatchObject({
                 message: 'Please authenticate'
             });
@@ -322,16 +325,12 @@ describe('File API Integration Tests', () => {
 
         it('should return 401 when not authenticated', async () => {
             // Override auth mock to fail authentication for this test
-            (auth as any).mockImplementation(() => (req: any, res: any, next: any) => {
-                const error = new Error('Please authenticate');
-                (error as any).statusCode = 401;
-                next(error);
+            mockAuth.mockImplementation(() => (req: any, res: any) => {
+                return res.status(401).json({ message: 'Please authenticate' });
             });
-            
-            const response = await request(app)
-                .get('/files')
-                .expect(httpStatus.UNAUTHORIZED);
-                
+
+            const response = await request(app).get('/files').expect(httpStatus.UNAUTHORIZED);
+
             expect(response.body).toMatchObject({
                 message: 'Please authenticate'
             });
@@ -421,17 +420,15 @@ describe('File API Integration Tests', () => {
 
         it('should return 401 when not authenticated', async () => {
             // Override auth mock to fail authentication for this test
-            (auth as any).mockImplementation(() => (req: any, res: any, next: any) => {
-                const error = new Error('Please authenticate');
-                (error as any).statusCode = 401;
-                next(error);
+            mockAuth.mockImplementation(() => (req: any, res: any) => {
+                return res.status(401).json({ message: 'Please authenticate' });
             });
-            
+
             const response = await request(app)
                 .put('/files/1')
                 .attach('file', Buffer.from('content'), 'test.pdf')
                 .expect(httpStatus.UNAUTHORIZED);
-                
+
             expect(response.body).toMatchObject({
                 message: 'Please authenticate'
             });
@@ -488,16 +485,12 @@ describe('File API Integration Tests', () => {
 
         it('should return 401 when not authenticated', async () => {
             // Override auth mock to fail authentication for this test
-            (auth as any).mockImplementation(() => (req: any, res: any, next: any) => {
-                const error = new Error('Please authenticate');
-                (error as any).statusCode = 401;
-                next(error);
+            mockAuth.mockImplementation(() => (req: any, res: any) => {
+                return res.status(401).json({ message: 'Please authenticate' });
             });
-            
-            const response = await request(app)
-                .delete('/files/1')
-                .expect(httpStatus.UNAUTHORIZED);
-                
+
+            const response = await request(app).delete('/files/1').expect(httpStatus.UNAUTHORIZED);
+
             expect(response.body).toMatchObject({
                 message: 'Please authenticate'
             });

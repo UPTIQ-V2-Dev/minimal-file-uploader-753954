@@ -1,8 +1,8 @@
 import { fileController } from '../../controllers/index.ts';
 import auth from '../../middlewares/auth.ts';
 import validate from '../../middlewares/validate.ts';
-import { fileValidation } from '../../validations/index.ts';
 import ApiError from '../../utils/ApiError.ts';
+import { fileValidation } from '../../validations/index.ts';
 import { NextFunction, Request, Response } from 'express';
 import express from 'express';
 import httpStatus from 'http-status';

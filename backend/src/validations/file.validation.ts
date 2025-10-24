@@ -6,9 +6,11 @@ const uploadFile = {
 };
 
 const getFile = {
-    params: Joi.object().keys({
-        id: Joi.number().integer().required()
-    }).options({ convert: true })
+    params: Joi.object()
+        .keys({
+            id: Joi.number().integer().required()
+        })
+        .options({ convert: true })
 };
 
 const getFiles = {
@@ -21,17 +23,21 @@ const getFiles = {
 };
 
 const updateFile = {
-    params: Joi.object().keys({
-        id: Joi.number().integer().required()
-    }).options({ convert: true })
+    params: Joi.object()
+        .keys({
+            id: Joi.number().integer().required()
+        })
+        .options({ convert: true })
     // No body validation needed for file update as we handle it with multer
     // File validation is done in the service layer
 };
 
 const deleteFile = {
-    params: Joi.object().keys({
-        id: Joi.number().integer().required()
-    }).options({ convert: true })
+    params: Joi.object()
+        .keys({
+            id: Joi.number().integer().required()
+        })
+        .options({ convert: true })
 };
 
 export default {

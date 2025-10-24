@@ -19,7 +19,9 @@ const generateToken = (userId, expires, type, secret = config.jwt.secret) => {
         sub: userId,
         iat: moment().unix(),
         exp: expires.unix(),
-        type
+        type,
+        // Add a random component to ensure uniqueness
+        jti: Math.random().toString(36).substring(2, 15)
     };
     return jwt.sign(payload, secret);
 };
@@ -51,15 +53,31 @@ const saveToken = async (token, userId, expires, type, blacklisted = false) => {
  * @returns {Promise<Token>}
  */
 const verifyToken = async (token, type) => {
-    const payload = jwt.verify(token, config.jwt.secret);
-    const userId = Number(payload.sub);
-    const tokenData = await prisma.token.findFirst({
-        where: { token, type, userId, blacklisted: false }
-    });
-    if (!tokenData) {
-        throw new Error('Token not found');
+    try {
+        const payload = jwt.verify(token, config.jwt.secret);
+        const userId = Number(payload.sub);
+        // First check if token exists in database and is not blacklisted
+        const tokenData = await prisma.token.findFirst({
+            where: { token, type, userId, blacklisted: false }
+        });
+        if (!tokenData) {
+            throw new Error('Token not found in database');
+        }
+        // Check if token has expired based on database record
+        if (new Date() > tokenData.expires) {
+            throw new Error('Token has expired');
+        }
+        return tokenData;
     }
-    return tokenData;
+    catch (error) {
+        if (error instanceof jwt.JsonWebTokenError) {
+            throw new Error('Invalid token signature');
+        }
+        if (error instanceof jwt.TokenExpiredError) {
+            throw new Error('Token has expired');
+        }
+        throw new Error('Token verification failed');
+    }
 };
 /**
  * Generate auth tokens

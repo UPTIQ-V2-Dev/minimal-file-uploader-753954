@@ -1,10 +1,28 @@
 import fileController from "../../controllers/file.controller.js";
 import { Role } from '../../generated/prisma/index.js';
 import { fileService } from "../../services/index.js";
+import ApiError from "../../utils/ApiError.js";
 import httpStatus from 'http-status';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mock dependencies
 vi.mock('../../services/index.ts');
+// Mock the catchAsyncWithAuth wrapper
+vi.mock('../../utils/catchAsyncWithAuth.ts', () => ({
+    default: (fn) => {
+        return (req, res, next) => {
+            try {
+                const result = fn(req, res, next);
+                if (result && typeof result.catch === 'function') {
+                    return result.catch(next);
+                }
+                return result;
+            }
+            catch (error) {
+                next(error);
+            }
+        };
+    }
+}));
 const mockFileService = {
     uploadFile: vi.fn(),
     getFileById: vi.fn(),
@@ -86,10 +104,10 @@ describe('File Controller', () => {
             mockReq.file = undefined;
             const controller = fileController.uploadFile;
             await controller(mockReq, mockRes, mockNext);
-            expect(mockNext).toHaveBeenCalledWith(expect.objectContaining({
-                statusCode: httpStatus.BAD_REQUEST,
-                message: 'No file provided'
-            }));
+            expect(mockNext).toHaveBeenCalledWith(expect.any(ApiError));
+            const calledError = mockNext.mock.calls[0][0];
+            expect(calledError.statusCode).toBe(httpStatus.BAD_REQUEST);
+            expect(calledError.message).toBe('No file provided');
         });
     });
     describe('getFile', () => {
@@ -124,10 +142,10 @@ describe('File Controller', () => {
             mockFileService.getFileById.mockResolvedValue(null);
             const controller = fileController.getFile;
             await controller(mockReq, mockRes, mockNext);
-            expect(mockNext).toHaveBeenCalledWith(expect.objectContaining({
-                statusCode: httpStatus.NOT_FOUND,
-                message: 'File not found'
-            }));
+            expect(mockNext).toHaveBeenCalledWith(expect.any(ApiError));
+            const calledError = mockNext.mock.calls[0][0];
+            expect(calledError.statusCode).toBe(httpStatus.NOT_FOUND);
+            expect(calledError.message).toBe('File not found');
         });
     });
     describe('getFiles', () => {
@@ -229,10 +247,10 @@ describe('File Controller', () => {
             mockReq.file = undefined;
             const controller = fileController.updateFile;
             await controller(mockReq, mockRes, mockNext);
-            expect(mockNext).toHaveBeenCalledWith(expect.objectContaining({
-                statusCode: httpStatus.BAD_REQUEST,
-                message: 'No file provided'
-            }));
+            expect(mockNext).toHaveBeenCalledWith(expect.any(ApiError));
+            const calledError = mockNext.mock.calls[0][0];
+            expect(calledError.statusCode).toBe(httpStatus.BAD_REQUEST);
+            expect(calledError.message).toBe('No file provided');
         });
     });
     describe('deleteFile', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll, afterEach } from 'vitest';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { authService } from '@/services/auth';
@@ -90,6 +90,32 @@ describe('authService', () => {
         it('should handle 401 unauthorized error', async () => {
             await expect(authService.login(mockInvalidLoginRequest)).rejects.toHaveProperty('response.status', 401);
         });
+
+        it('should fallback to mock data on 504 gateway timeout error', async () => {
+            server.use(
+                http.post('/api/v1/auth/login', () => {
+                    return HttpResponse.json({ message: 'Gateway Timeout' }, { status: 504 });
+                })
+            );
+
+            const result = await authService.login(mockValidLoginRequest);
+
+            expect(result).toEqual(mockAuthResponse);
+            expect(mockApiHelpers.setAuthData).toHaveBeenCalledWith(mockAuthResponse);
+        });
+
+        it('should fallback to mock data on network error', async () => {
+            server.use(
+                http.post('/api/v1/auth/login', () => {
+                    return HttpResponse.error();
+                })
+            );
+
+            const result = await authService.login(mockValidLoginRequest);
+
+            expect(result).toEqual(mockAuthResponse);
+            expect(mockApiHelpers.setAuthData).toHaveBeenCalledWith(mockAuthResponse);
+        });
     });
 
     describe('register', () => {
@@ -107,6 +133,19 @@ describe('authService', () => {
 
             expect(result).toEqual(mockAuthResponse);
             expect(mockApiHelpers.setAuthData).not.toHaveBeenCalled();
+        });
+
+        it('should fallback to mock data on server error', async () => {
+            server.use(
+                http.post('/api/v1/auth/register', () => {
+                    return HttpResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+                })
+            );
+
+            const result = await authService.register(mockSignupRequest);
+
+            expect(result).toEqual(mockAuthResponse);
+            expect(mockApiHelpers.setAuthData).toHaveBeenCalledWith(mockAuthResponse);
         });
     });
 
@@ -126,6 +165,19 @@ describe('authService', () => {
             expect(result).toEqual(mockAuthResponse);
             expect(mockApiHelpers.setAuthData).not.toHaveBeenCalled();
         });
+
+        it('should fallback to mock data on server error', async () => {
+            server.use(
+                http.post('/api/v1/auth/refresh', () => {
+                    return HttpResponse.json({ message: 'Bad Gateway' }, { status: 502 });
+                })
+            );
+
+            const result = await authService.refreshToken();
+
+            expect(result).toEqual(mockAuthResponse);
+            expect(mockApiHelpers.setAuthData).toHaveBeenCalledWith(mockAuthResponse);
+        });
     });
 
     describe('logout', () => {
@@ -135,16 +187,30 @@ describe('authService', () => {
             await expect(authService.logout()).resolves.toBeUndefined();
         });
 
-        it('should throw error when no refresh token found', async () => {
+        it('should clear auth data when no refresh token found', async () => {
             mockApiHelpers.getStoredRefreshToken.mockReturnValue(null);
 
-            await expect(authService.logout()).rejects.toThrow('No refresh token found');
+            await expect(authService.logout()).resolves.toBeUndefined();
+            expect(mockApiHelpers.clearAuthData).toHaveBeenCalled();
         });
 
         it('should use mock data when VITE_USE_MOCK_DATA is true', async () => {
             vi.stubEnv('VITE_USE_MOCK_DATA', 'true');
 
             await expect(authService.logout()).resolves.toBeUndefined();
+            expect(mockApiHelpers.clearAuthData).toHaveBeenCalled();
+        });
+
+        it('should fallback to clearing local data on server error', async () => {
+            mockApiHelpers.getStoredRefreshToken.mockReturnValue('mock-refresh-token');
+            server.use(
+                http.post('/api/v1/auth/logout', () => {
+                    return HttpResponse.json({ message: 'Service Unavailable' }, { status: 503 });
+                })
+            );
+
+            await expect(authService.logout()).resolves.toBeUndefined();
+            expect(mockApiHelpers.clearAuthData).toHaveBeenCalled();
         });
     });
 

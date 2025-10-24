@@ -1,8 +1,8 @@
 import config from '../config/config.ts';
 import nodemailer from 'nodemailer';
 
-const transport = nodemailer.createTransport(config.email.smtp);
-/* istanbul ignore next */
+// Create transport only in production, use test transport in development
+const transport = config.env === 'production' ? nodemailer.createTransport(config.email.smtp) : null;
 
 /**
  * Send an email
@@ -12,6 +12,18 @@ const transport = nodemailer.createTransport(config.email.smtp);
  * @returns {Promise}
  */
 const sendEmail = async (to: string, subject: string, text: string) => {
+    // In development, just log the email instead of sending
+    if (config.env === 'development' || config.env === 'dev') {
+        console.log(`[EMAIL] Would send email to: ${to}`);
+        console.log(`[EMAIL] Subject: ${subject}`);
+        console.log(`[EMAIL] Content: ${text}`);
+        return;
+    }
+
+    if (!transport) {
+        throw new Error('Email transport not configured');
+    }
+
     const msg = { from: config.email.from, to, subject, text };
     await transport.sendMail(msg);
 };
