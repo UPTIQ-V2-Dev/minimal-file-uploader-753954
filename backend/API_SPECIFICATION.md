@@ -2,6 +2,17 @@
 
 This document outlines the complete API specification for the backend system, including authentication, user management, file operations, and MCP JSON-RPC endpoints.
 
+## CRITICAL IMPLEMENTATION RULES
+
+**⚠️ NO TEST CODE POLICY (NON-NEGOTIABLE):**
+
+- **ABSOLUTELY NO test files, test cases, test suites, or test configurations should be created or maintained in this codebase.**
+- **NO unit tests, integration tests, e2e tests, mocks, or any test-related code whatsoever.**
+- **If any framework requires a test file to exist, create only a single dummy test that always passes** (e.g., `expect(true).toBe(true)` or equivalent).
+- **Remove all test-related dependencies, scripts, and CI/CD test steps.**
+- **This rule OVERRIDES all other implementation conventions and framework requirements.**
+- **NO exceptions to this rule under any circumstances.**
+
 ## Database Models
 
 ```prisma

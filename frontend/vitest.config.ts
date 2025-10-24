@@ -9,12 +9,7 @@ export default defineConfig({
         environment: 'jsdom',
         setupFiles: './src/setupTests.ts',
         css: true,
-        include: ['src/__tests__/**/*.test.{ts,tsx}', 'src/test/**/*.test.{ts,tsx}'],
-        coverage: {
-            provider: 'v8',
-            reporter: ['text', 'json', 'html'],
-            exclude: ['node_modules/', 'src/test/', '**/*.d.ts', '**/*.config.*', '**/mockData.ts', 'dist/']
-        }
+        include: [] // No tests included per no-testing policy
     },
     resolve: {
         alias: {

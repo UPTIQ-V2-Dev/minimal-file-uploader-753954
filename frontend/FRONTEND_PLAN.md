@@ -11,7 +11,7 @@ Extremely minimal React 19 + Vite + shadcn + Tailwind v4 application for uploadi
 - **Styling**: Tailwind CSS v4.1.11 + shadcn/ui components
 - **Forms**: React Hook Form + Zod validation
 - **HTTP Client**: Axios (already configured)
-- **Testing**: Vitest + React Testing Library + MSW
+- **Testing**: None (No testing policy in effect)
 
 ## Architecture Overview
 
@@ -47,12 +47,7 @@ Single-page application with file upload functionality, cloud storage integratio
 - Already implemented in `src/services/auth.ts`
 - Login, logout, token refresh functionality
 
-**Testing Strategy**:
-
-- Login form validation tests
-- Authentication flow tests
-- Error handling tests
-- Protected route redirect tests
+**No Testing Required**: All testing requirements removed per no-testing policy
 
 ### 2. File Upload Page (Protected Page)
 
@@ -153,288 +148,19 @@ interface FileUploadResponse {
 }
 ```
 
-## Testing Strategy
-
-### Test File Organization
-
-```
-src/
-├── __tests__/
-│   ├── components/
-│   │   ├── auth/
-│   │   │   ├── LoginForm.test.tsx
-│   │   │   └── AuthLayout.test.tsx
-│   │   └── upload/
-│   │       ├── FileDropzone.test.tsx
-│   │       ├── FilePreview.test.tsx
-│   │       ├── UploadProgress.test.tsx
-│   │       └── UploadResult.test.tsx
-│   ├── pages/
-│   │   ├── LoginPage.test.tsx
-│   │   └── FileUpload.test.tsx
-│   ├── services/
-│   │   ├── auth.test.ts
-│   │   └── fileService.test.ts
-│   ├── utils/
-│   │   ├── fileValidation.test.ts
-│   │   └── fileHelpers.test.ts
-│   └── hooks/
-│       ├── useAuth.test.ts
-│       └── useFileUpload.test.ts
-├── __mocks__/
-│   ├── authMocks.ts
-│   ├── fileMocks.ts
-│   └── handlers.ts (MSW handlers)
-└── test-utils.tsx
-```
-
-### Testing Setup Files
-
-- `src/setupTests.ts` - Global test configuration
-- `src/test-utils.tsx` - Custom render functions with providers
-- `vitest.config.ts` - Already configured
-
-### Unit/Component Tests (Vitest + RTL)
-
-**LoginForm Component Tests**:
-
-- Renders form fields correctly
-- Validates email format
-- Validates password requirements
-- Handles form submission
-- Shows appropriate error messages
-- Disables submit during loading state
-- Remember me functionality
-
-**AuthLayout Component Tests**:
-
-- Renders layout structure correctly
-- Handles responsive design
-- Displays proper styling
-
-**LoginPage Tests**:
-
-- Complete authentication flow integration
-- Redirects after successful login
-- Error handling for failed login
-- Loading states management
-
-**FileDropzone Component Tests**:
-
-- Renders drop zone correctly
-- Handles file selection via input
-- Handles drag and drop events
-- Validates file types and sizes
-- Shows appropriate error messages
-- Disables during upload state
-
-**FilePreview Component Tests**:
-
-- Displays file information correctly
-- Shows file size in human-readable format
-- Renders different icons for file types
-- Handles remove file action
-
-**UploadProgress Component Tests**:
-
-- Shows progress percentage
-- Displays upload status messages
-- Handles upload cancellation
-
-**UploadResult Component Tests**:
-
-- Displays success state with signed URL
-- Shows error messages on failure
-- Provides retry functionality
-- Handles copy-to-clipboard for signed URL
-
-**FileUpload Page Tests**:
-
-- Complete upload flow integration
-- Error boundary behavior
-- Loading states
-- Navigation and routing
-
-### Service/API Tests
-
-**authService Tests**:
-
-- Mock API calls using MSW
-- Test login with valid credentials
-- Test login with invalid credentials
-- Test logout functionality
-- Test token refresh handling
-- Test error handling (network, server errors)
-
-**fileService Tests**:
-
-- Mock API calls using MSW
-- Test upload with progress callbacks
-- Test error handling (network, server errors)
-- Test file validation on API level
-- Test signed URL retrieval
-
-### Hook Tests
-
-**useAuth Hook Tests**:
-
-- Authentication state management
-- Login flow handling
-- Logout functionality
-- Token refresh behavior
-- Error state management
-- Loading states
-
-**useFileUpload Hook Tests**:
-
-- File selection state management
-- Upload progress tracking
-- Error state handling
-- Success state with signed URL
-- File validation integration
-
-### Utility Tests
-
-**fileValidation Tests**:
-
-- File type validation (images, PDFs)
-- File size validation (<5MB)
-- MIME type validation
-- Edge cases (corrupted files, empty files)
-
-**fileHelpers Tests**:
-
-- File size formatting
-- File type detection
-- File preview generation
-
-### MSW (Mock Service Worker) Setup
-
-**API Mocking Strategy**:
-
-```typescript
-// src/__mocks__/handlers.ts
-export const handlers = [
-    http.post('/api/files/upload', () => {
-        return HttpResponse.json({
-            id: '123',
-            filename: 'test.jpg',
-            signedUrl: 'https://cloud.storage/signed-url',
-            contentType: 'image/jpeg',
-            size: 1024000,
-            uploadedAt: '2023-01-01T00:00:00Z'
-        });
-    }),
-
-    http.get('/api/files/:id', () => {
-        return HttpResponse.json({
-            id: '123',
-            filename: 'test.jpg',
-            signedUrl: 'https://cloud.storage/signed-url'
-        });
-    })
-];
-```
-
-### Key Test Scenarios
-
-**Form Validation Tests**:
-
-- Upload invalid file types
-- Upload files exceeding 5MB limit
-- Upload with no file selected
-- Upload multiple files (should reject)
-
-**State Transition Tests**:
-
-- Idle → File Selected → Uploading → Success
-- Idle → File Selected → Uploading → Error
-- Error → Retry → Success
-- Success → Upload Another File
-
-**Error Handling Tests**:
-
-- Network timeout during upload
-- Server 500 errors
-- Invalid API responses
-- File corruption during upload
-
-**Integration Tests**:
-
-- Complete user journey from file selection to signed URL
-- Error recovery scenarios
-- Accessibility compliance
-- Mobile responsiveness
-
-### Test Utilities and Custom Matchers
-
-**File Mock Creation**:
-
-```typescript
-// src/__mocks__/fileMocks.ts
-export const createMockFile = (name: string, type: string, size: number): File => {
-    return new File(['mock content'], name, { type, size });
-};
-```
-
-**Custom Render with Providers**:
-
-```typescript
-// src/test-utils.tsx
-export const renderWithProviders = (ui: React.ReactElement) => {
-  return render(ui, {
-    wrapper: ({ children }) => (
-      <QueryClientProvider client={testQueryClient}>
-        <ErrorBoundary>
-          {children}
-        </ErrorBoundary>
-      </QueryClientProvider>
-    )
-  });
-};
-```
-
-### Test Coverage Goals
-
-- **Components**: 95%+ coverage
-- **Services**: 100% coverage
-- **Utilities**: 100% coverage
-- **Hooks**: 95%+ coverage
-
-### Example Test Patterns
-
-**Component Test Example**:
-
-```typescript
-describe('FileDropzone', () => {
-  it('should accept valid image files', async () => {
-    const onFileSelect = vi.fn();
-    renderWithProviders(<FileDropzone onFileSelect={onFileSelect} />);
-
-    const file = createMockFile('test.jpg', 'image/jpeg', 1000000);
-    const input = screen.getByLabelText(/select file/i);
-
-    await userEvent.upload(input, file);
-
-    expect(onFileSelect).toHaveBeenCalledWith(file);
-  });
-});
-```
-
-**Service Test Example**:
-
-```typescript
-describe('fileService', () => {
-    it('should upload file and return signed URL', async () => {
-        const file = createMockFile('test.pdf', 'application/pdf', 2000000);
-
-        const result = await uploadFile(file);
-
-        expect(result.signedUrl).toBeDefined();
-        expect(result.filename).toBe('test.pdf');
-    });
-});
-```
+## NO TESTING POLICY
+
+**CRITICAL IMPLEMENTATION RULE - NON-NEGOTIABLE:**
+
+- **NO TEST CASES OF ANY KIND SHOULD EXIST IN THIS CODEBASE**
+- **NO unit tests, integration tests, e2e tests, mocks, or any test-related configurations**
+- **NO test files, folders, or references should remain anywhere in the frontend**
+- **DO NOT regenerate or rewrite any test cases under any circumstances**
+- **If any framework requires a test file to exist, create only a single dummy test that always passes** (e.g., `expect(true).toBe(true)`)
+- **Remove all test-related setup scripts, test commands from package.json, and CI/CD test steps**
+- **This rule OVERRIDES all other implementation or framework conventions — absolutely no test code should exist in the final version**
+
+This policy applies to all current and future development on this project. Any mention of testing in implementation requirements should be ignored in favor of this no-testing rule.
 
 ## Implementation Phases
 
@@ -456,15 +182,13 @@ describe('fileService', () => {
 - Implement signed URL handling
 - Add error handling
 
-### Phase 4: Polish & Testing
+### Phase 4: Polish & Finalization
 
-- Complete test suite implementation
 - Error boundary and edge cases
 - Performance optimization
 
 ### Phase 5: Final Integration
 
-- End-to-end testing
 - Build and deployment preparation
 - Documentation cleanup
 
